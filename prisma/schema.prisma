@@ -25,7 +25,7 @@ model CheckIn {
   time   DateTime @default(now())
   userId String   @unique
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum CategoryType {

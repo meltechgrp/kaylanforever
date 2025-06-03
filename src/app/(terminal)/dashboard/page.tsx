@@ -2,6 +2,7 @@ import { Card } from '@/components/ui/card';
 import TabsView from './components/tabs-view';
 import { AddGuest } from './components/add-guest';
 import { getUsers } from '@/lib/actions';
+import { Download } from './components/download';
 
 export const dynamic = 'force-dynamic'; // disables cache
 export const fetchCache = 'force-no-store';
@@ -27,7 +28,11 @@ export default async function Dashboard() {
 								</div>
 							</div>
 						</div>
-						<AddGuest type="add" />
+
+						<div className="flex gap-4">
+							<AddGuest type="add" />
+							<Download data={data} />
+						</div>
 					</div>
 					<TabsView data={data} />
 				</Card>
