@@ -163,7 +163,7 @@ const config = {
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": "../../../../.env",
+    "rootEnvPath": null,
     "schemaEnvPath": "../../../../.env"
   },
   "relativePath": "../../../../prisma",
@@ -173,7 +173,6 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
-  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
@@ -184,7 +183,7 @@ const config = {
   },
   "inlineSchema": "generator client {\n  provider = \"prisma-client-js\"\n  output   = \"../src/lib/prisma/generated\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nmodel User {\n  id        String       @id @default(uuid())\n  name      String\n  phone     String?\n  email     String?      @unique\n  guests    Int          @default(0) // People the user is bringing\n  checkIn   CheckIn? // Their check-in record\n  category  CategoryType\n  createdAt DateTime     @default(now())\n  updatedAt DateTime     @updatedAt\n}\n\nmodel CheckIn {\n  id     String   @id @default(uuid())\n  time   DateTime @default(now())\n  userId String   @unique\n\n  user User @relation(fields: [userId], references: [id])\n}\n\nenum CategoryType {\n  CITY\n  HOUSE\n  FAMILY\n}\n",
   "inlineSchemaHash": "54dc8fa4374487e205d9677b4c50f108edc9f90a35df529e188aaa9838f45b0e",
-  "copyEngine": true
+  "copyEngine": false
 }
 
 const fs = require('fs')
@@ -221,9 +220,3 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
-// file annotations for bundling tools to include these files
-path.join(__dirname, "libquery_engine-darwin-arm64.dylib.node");
-path.join(process.cwd(), "src/lib/prisma/generated/libquery_engine-darwin-arm64.dylib.node")
-// file annotations for bundling tools to include these files
-path.join(__dirname, "schema.prisma");
-path.join(process.cwd(), "src/lib/prisma/generated/schema.prisma")

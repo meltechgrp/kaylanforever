@@ -8,6 +8,9 @@ export async function getUsers() {
 			include: {
 				checkIn: true,
 			},
+			orderBy: {
+				name: 'asc',
+			},
 		});
 		return data;
 	} catch (error) {
@@ -23,25 +26,46 @@ export async function addUser({
 	phone,
 	guests,
 	category,
+	id,
 }: {
 	name: string;
 	phone?: string;
 	guests?: string;
+	id?: string;
 	category: CategoryType;
 }) {
 	try {
-		const res = await prisma.user.create({
-			data: {
-				name,
-				phone,
-				guests: Number(guests) ?? 0,
-				category,
-			},
-		});
-		if (res) {
-			return {
-				success: true,
-			};
+		if (id) {
+			const res = await prisma.user.update({
+				where: {
+					id,
+				},
+				data: {
+					name,
+					phone,
+					guests: Number(guests) ?? 0,
+					category,
+				},
+			});
+			if (res) {
+				return {
+					success: true,
+				};
+			}
+		} else {
+			const res = await prisma.user.create({
+				data: {
+					name,
+					phone,
+					guests: Number(guests) ?? 0,
+					category,
+				},
+			});
+			if (res) {
+				return {
+					success: true,
+				};
+			}
 		}
 	} catch (error) {
 		console.log(error);
@@ -93,3 +117,15 @@ export async function checkIn(id: string) {
 }
 
 export type CheckIn = Awaited<ReturnType<typeof checkIn>>;
+
+export async function deleteUser(id: string) {
+	try {
+		await prisma.user.delete({
+			where: { id },
+		});
+		return true;
+	} catch (error) {
+		console.log(error);
+		return false;
+	}
+}

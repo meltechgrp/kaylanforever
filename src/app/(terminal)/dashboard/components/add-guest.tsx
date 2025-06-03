@@ -23,17 +23,25 @@ import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import { Loader } from 'lucide-react';
 import { CategoryType } from '@/lib/prisma';
-import { addUser } from '@/lib/actions';
+import { addUser, Users } from '@/lib/actions';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
-export function AddGuest() {
+type Props = {
+	type: 'add' | 'edit';
+	guest?: Users[0];
+};
+
+export function AddGuest({ guest, type }: Props) {
+	const router = useRouter();
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const [form, setForm] = React.useState({
-		name: '',
-		guests: '',
-		phone: '',
-		category: 'FAMILY' as CategoryType,
+		id: guest?.id,
+		name: guest?.name || '',
+		guests: guest?.guests.toString() || '',
+		phone: guest?.phone || '',
+		category: guest?.category || ('FAMILY' as CategoryType),
 	});
 	async function handleSubmit() {
 		if (!form.name) {
@@ -46,7 +54,12 @@ export function AddGuest() {
 				return toast.error('Error occuried, try again!');
 			} else {
 				setOpen(false);
-				return toast.success('Guest added successfully!');
+				router.refresh();
+				return toast.success(
+					type == 'add'
+						? 'Guest added successfully!'
+						: 'Guest updated successfully!'
+				);
 			}
 		} catch (error: any) {
 			console.error('Failed request:', error);
@@ -58,12 +71,14 @@ export function AddGuest() {
 	return (
 		<AlertDialog open={open} onOpenChange={setOpen}>
 			<AlertDialogTrigger asChild>
-				<Button variant="outline">Add Guest</Button>
+				<Button variant="outline">
+					{type == 'add' ? 'Add Guest' : 'Edit'}
+				</Button>
 			</AlertDialogTrigger>
 			<AlertDialogContent className=" max-w-xl py-8 gap-6">
 				<AlertDialogHeader>
 					<AlertDialogTitle className="text-xl">
-						Add a New Guest
+						{type == 'add' ? 'Add a New Guest' : 'Update Guest Info'}
 					</AlertDialogTitle>
 					<div className="flex flex-col gap-4">
 						<div className="flex-1">
@@ -130,10 +145,10 @@ export function AddGuest() {
 					</div>
 				</AlertDialogHeader>
 				<AlertDialogFooter className="flex-row gap-4">
-					<AlertDialogCancel className="flex-1">Cancel</AlertDialogCancel>
+					<AlertDialogCancel className="flex-1">Close</AlertDialogCancel>
 					<Button className="flex-1" onClick={async () => await handleSubmit()}>
 						{loading && <Loader className=" w-4 h-4 animate-spin" />}
-						Save
+						{type == 'add' ? 'Save' : 'Update'}
 					</Button>
 				</AlertDialogFooter>
 			</AlertDialogContent>

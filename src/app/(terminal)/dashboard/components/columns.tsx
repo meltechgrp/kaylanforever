@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns/format';
-import { Users } from '@/lib/actions';
+import { deleteUser, Users } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -17,7 +17,22 @@ import {
 	DrawerTitle,
 	DrawerTrigger,
 } from '@/components/ui/drawer';
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { useRef, useState } from 'react';
+import { AddGuest } from './add-guest';
+import { useRouter } from 'next/navigation';
+import { Loader } from 'lucide-react';
+import { toast } from 'sonner';
 
 export const columns: ColumnDef<Users[0]>[] = [
 	{
@@ -35,12 +50,12 @@ export const columns: ColumnDef<Users[0]>[] = [
 			const member = row.original;
 			const name = member.name;
 			return (
-				<div className="flex space-x-2 px-2 md:px-4">
+				<div className="flex flex-col space-x-2 px-2 md:px-4">
 					<div className="text-sm text-nowrap font-medium capitalize text-foreground">
 						{name}
 					</div>
-					<div className="text-sm text-nowrap text-foreground">
-						<span className="truncate">{member?.phone ?? 'N/A'}</span>
+					<div className="text-xs text-nowrap text-foreground">
+						<span className="">{member?.phone ?? 'N/A'}</span>
 					</div>
 				</div>
 			);
@@ -93,7 +108,7 @@ export const columns: ColumnDef<Users[0]>[] = [
 		cell({ row }) {
 			const createdAt = row.original.createdAt;
 			return (
-				<time className="text-xs md:text-sm text-nowrap text-foreground ">
+				<time className="text-xs md:text-sm text-nowrap ml-auto text-foreground ">
 					{createdAt
 						? format(new Date(createdAt), 'MMM d, yyyy,  hh:mm a')
 						: 'N/A'}
@@ -102,10 +117,16 @@ export const columns: ColumnDef<Users[0]>[] = [
 		},
 	},
 	{
-		id: 'actions',
+		id: 'action',
 		cell: ({ row }) => {
 			const user = row.original;
-			return <UserQRCode {...user} />;
+			return (
+				<div className="flex gap-4">
+					<UserQRCode {...user} />
+					<AddGuest type="edit" guest={user} />
+					<DeleteGuest id={user.id} />
+				</div>
+			);
 		},
 	},
 ];
@@ -177,5 +198,58 @@ export function UserQRCode({ name, id }: { name: string; id: string }) {
 				</div>
 			</DrawerContent>
 		</Drawer>
+	);
+}
+
+export function DeleteGuest({ id }: { id: string }) {
+	const router = useRouter();
+	const [open, setOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
+
+	async function handleSubmit() {
+		if (!id) {
+			return toast.warning('Please a valid id');
+		}
+		try {
+			setLoading(true);
+			const res = await deleteUser(id);
+			if (!res) {
+				return toast.error('Error occuried, try again!');
+			} else {
+				setOpen(false);
+				router.refresh();
+				return toast.success('Guest deleted successfully!');
+			}
+		} catch (error: any) {
+			console.error('Failed request:', error);
+			return toast.error('Error occuried, try again!');
+		} finally {
+			setLoading(false);
+		}
+	}
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogTrigger asChild>
+				<Button variant="destructive" className="text-white">
+					Delete
+				</Button>
+			</AlertDialogTrigger>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+					<AlertDialogDescription>
+						This action cannot be undone. This will permanently delete guest
+						data from our servers.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter className="flex-row gap-4">
+					<AlertDialogCancel className="flex-1">Close</AlertDialogCancel>
+					<Button className="flex-1" onClick={async () => await handleSubmit()}>
+						{loading && <Loader className=" w-4 h-4 animate-spin" />}
+						Continue
+					</Button>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
 	);
 }

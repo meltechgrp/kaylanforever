@@ -25,7 +25,7 @@ export default async function Dashboard() {
 								</div>
 							</div>
 						</div>
-						<AddGuest />
+						<AddGuest type="add" />
 					</div>
 					<TabsView data={data} />
 				</Card>
