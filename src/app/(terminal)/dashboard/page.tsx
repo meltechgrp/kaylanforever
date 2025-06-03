@@ -3,6 +3,8 @@ import TabsView from './components/tabs-view';
 import { AddGuest } from './components/add-guest';
 import { getUsers } from '@/lib/actions';
 
+export const dynamic = 'force-dynamic'; // disables cache
+export const fetchCache = 'force-no-store';
 export default async function Dashboard() {
 	const data = await getUsers();
 	return (
