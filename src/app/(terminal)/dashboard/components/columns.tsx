@@ -122,7 +122,7 @@ export const columns: ColumnDef<Users[0]>[] = [
 			const user = row.original;
 			return (
 				<div className="flex gap-4">
-					<UserQRCode {...user} />
+					<UserQRCode id={user.id} name={user.name} />
 					<AddGuest type="edit" guest={user} />
 					<DeleteGuest id={user.id} />
 				</div>
@@ -144,7 +144,7 @@ export function UserQRCode({ name, id }: { name: string; id: string }) {
 			const imgData = canvas.toDataURL('image/png');
 			const link = document.createElement('a');
 			link.href = imgData;
-			link.download = `${name}-qrcode.png`;
+			link.download = `${name}-qrcode.jpg`;
 			link.click();
 		} catch (error) {
 			console.error('Error generating QR PDF:', error);
