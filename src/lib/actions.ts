@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma, { CategoryType } from './prisma';
 
 export async function getUsers() {
@@ -13,8 +13,6 @@ export async function getUsers() {
 				name: 'asc',
 			},
 		});
-
-		revalidatePath('/dashboard');
 		return data;
 	} catch (error) {
 		console.log(error);
@@ -51,7 +49,7 @@ export async function addUser({
 				},
 			});
 
-			revalidatePath('/dashboard');
+			revalidateTag('users');
 			if (res) {
 				return {
 					success: true,
@@ -66,7 +64,8 @@ export async function addUser({
 					category,
 				},
 			});
-			revalidatePath('/dashboard');
+
+			revalidateTag('users');
 			if (res) {
 				return {
 					success: true,
@@ -107,7 +106,8 @@ export async function checkIn(id: string) {
 				},
 			},
 		});
-		revalidatePath('/dashboard');
+
+		revalidateTag('users');
 		if (res) {
 			return { data: res };
 		} else {
@@ -130,7 +130,8 @@ export async function deleteUser(id: string) {
 		await prisma.user.delete({
 			where: { id },
 		});
-		revalidatePath('/dashboard');
+
+		revalidateTag('users');
 		return true;
 	} catch (error) {
 		console.log(error);
