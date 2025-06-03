@@ -4,13 +4,13 @@
 	"private": true,
 	"scripts": {
 		"dev": "next dev --turbopack",
-		"build": "bunx prisma generate && next build",
+		"build": "bunx prisma generate --no-engine && next build",
 		"start": "next start",
 		"lint": "next lint",
 		"seed": "prisma db seed",
 		"migrate": "bunx prisma migrate dev",
 		"reset": "bunx prisma migrate reset",
-		"generate": "bunx prisma generate",
+		"generate": "bunx prisma generate --no-engine",
 		"deploy": "bunx prisma deploy",
 		"studio": "bunx prisma studio --port 5599"
 	},
