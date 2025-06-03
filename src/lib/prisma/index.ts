@@ -1,3 +1,4 @@
+'use server';
 import { Prisma, PrismaClient } from './generated';
 
 import { withAccelerate } from '@prisma/extension-accelerate';
