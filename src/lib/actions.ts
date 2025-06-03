@@ -3,6 +3,9 @@
 import { revalidatePath, revalidateTag } from 'next/cache';
 import prisma, { CategoryType } from './prisma';
 
+export const dynamic = 'force-dynamic'; // disables cache
+export const fetchCache = 'force-no-store';
+
 export async function getUsers() {
 	try {
 		const data = await prisma.user.findMany({
