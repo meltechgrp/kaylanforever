@@ -1,0 +1,181 @@
+'use client';
+
+import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
+import { ColumnDef } from '@tanstack/react-table';
+import { format } from 'date-fns/format';
+import { Users } from '@/lib/actions';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { QRCodeCanvas } from 'qrcode.react';
+import {
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerDescription,
+	DrawerFooter,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+} from '@/components/ui/drawer';
+import { useRef, useState } from 'react';
+
+export const columns: ColumnDef<Users[0]>[] = [
+	{
+		id: 'name',
+		header: ({ column }) => (
+			<DataTableColumnHeader
+				column={column}
+				className="px-2 md:px-4 text-nowrap"
+				title="Guest Name"
+			/>
+		),
+		enableSorting: false,
+		enableHiding: false,
+		cell({ row }) {
+			const member = row.original;
+			const name = member.name;
+			return (
+				<div className="flex space-x-2 px-2 md:px-4">
+					<div className="text-sm text-nowrap font-medium capitalize text-foreground">
+						{name}
+					</div>
+					<div className="text-sm text-nowrap text-foreground">
+						<span className="truncate">{member?.phone ?? 'N/A'}</span>
+					</div>
+				</div>
+			);
+		},
+		filterFn: (row, id, value) => {
+			const member = row.original;
+
+			const name = member.name || '';
+			const phone = member.phone || '';
+			const newRegex = new RegExp(value, 'ig');
+			return newRegex.test(name) || newRegex.test(phone);
+		},
+	},
+	{
+		accessorKey: 'guests',
+		header: () => <span className="text-nowrap">No of Guests</span>,
+		cell({ row }) {
+			const count = row.original.guests;
+			return <span>{count}</span>;
+		},
+	},
+	{
+		accessorKey: 'category',
+		header: () => <span>Category</span>,
+		cell({ row }) {
+			const cat = { CITY: 'IN-CITY', HOUSE: 'IN-HOUSE', FAMILY: 'HOTR-FAMILY' };
+			const category = row.original.category;
+			return <span className="text-sm  capitalize">{cat[category]}</span>;
+		},
+	},
+	{
+		accessorKey: 'check',
+		header: () => <span className="text-nowrap">Checked In</span>,
+		cell({ row }) {
+			const check = row.original.checkIn;
+			return (
+				<span
+					className={cn(
+						'text-sm text-nowrap capitalize text-center',
+						check ? 'text-green-500' : 'text-yellow-500'
+					)}>
+					{check ? 'Checked' : 'Not yet'}
+				</span>
+			);
+		},
+	},
+	{
+		accessorKey: 'created',
+		header: () => <span className="text-nowrap">Created At</span>,
+		cell({ row }) {
+			const createdAt = row.original.createdAt;
+			return (
+				<time className="text-xs md:text-sm text-nowrap text-foreground ">
+					{createdAt
+						? format(new Date(createdAt), 'MMM d, yyyy,  hh:mm a')
+						: 'N/A'}
+				</time>
+			);
+		},
+	},
+	{
+		id: 'actions',
+		cell: ({ row }) => {
+			const user = row.original;
+			return <UserQRCode {...user} />;
+		},
+	},
+];
+
+export function UserQRCode({ name, id }: { name: string; id: string }) {
+	const [loading, setLoading] = useState(false);
+	const qrRef = useRef<HTMLDivElement | null>(null);
+	const downloadQRCode = async () => {
+		setLoading(true);
+		console.log('jhbds');
+		try {
+			const canvas = qrRef.current?.querySelector('canvas');
+			if (!canvas) throw new Error('Canvas not found');
+
+			const imgData = canvas.toDataURL('image/png');
+			const link = document.createElement('a');
+			link.href = imgData;
+			link.download = `${name}-qrcode.png`;
+			link.click();
+		} catch (error) {
+			console.error('Error generating QR PDF:', error);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	return (
+		<Drawer>
+			<DrawerTrigger asChild>
+				<Button>QR Code</Button>
+			</DrawerTrigger>
+			<DrawerContent>
+				<div className="mx-auto w-full max-w-sm flex flex-col items-center">
+					<DrawerHeader className="items-center">
+						<DrawerTitle className="text-center text-xl">
+							Guest QR Code
+						</DrawerTitle>
+						<DrawerDescription>You can download and share.</DrawerDescription>
+					</DrawerHeader>
+					<div>
+						<div
+							ref={qrRef}
+							className="p-4 bg-white rounded shadow w-fit flex flex-col items-center">
+							<QRCodeCanvas
+								value={id}
+								size={220}
+								bgColor="#ffffff"
+								fgColor="#000000"
+								level="H"
+							/>
+							<p className="text-base capitalize text-black font-bold text-center mt-3 w-full">
+								{name}
+							</p>
+						</div>
+					</div>
+					<DrawerFooter className="w-full flex-row gap-4">
+						<DrawerClose asChild>
+							<Button variant="outline" className="flex-1">
+								Close
+							</Button>
+						</DrawerClose>
+						<Button
+							onClick={downloadQRCode}
+							disabled={loading}
+							className="flex-1">
+							{loading ? 'Downloading...' : 'Download'}
+						</Button>
+					</DrawerFooter>
+				</div>
+			</DrawerContent>
+		</Drawer>
+	);
+}

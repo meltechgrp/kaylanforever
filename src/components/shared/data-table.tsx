@@ -73,13 +73,13 @@ export function DataTable<TData, TValue>({
 
 	return (
 		<div>
-			{/* {HeaderComponent ? (
+			{HeaderComponent ? (
 				<HeaderComponent table={table} />
 			) : (
 				<div className="py-4 px-6 border-b flex">
 					<DataTableToolbar table={table} />
 				</div>
-			)} */}
+			)}
 			<Table>
 				<TableHeader>
 					{table.getHeaderGroups().map((headerGroup) => (
