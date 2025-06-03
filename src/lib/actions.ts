@@ -5,17 +5,14 @@ import prisma, { CategoryType } from './prisma';
 export async function getUsers() {
 	try {
 		const data = await prisma.user.findMany({
+			include: {
+				checkIn: true,
+			},
 			orderBy: {
 				name: 'asc',
 			},
 		});
-		const result = await Promise.all(
-			data.map(async (item) => ({
-				...item,
-				checkIn: await prisma.checkIn.findFirst({ where: { userId: item.id } }),
-			}))
-		);
-		return result;
+		return data;
 	} catch (error) {
 		console.log(error);
 		return [];
