@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Users } from '@/lib/actions';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useRef, useState, useEffect } from 'react';
+import { saveAs } from 'file-saver'; // optional but useful
+import 'file-saver';
+import JSZip from 'jszip';
 
 interface Props {
 	data: Users;
@@ -23,45 +26,45 @@ export function Download({ data }: Props) {
 	const downloadQRCode = async () => {
 		setLoading(true);
 		try {
-			await Promise.all(
-				data.map(({ id, name }) => {
-					const canvas = refs.current[id]?.querySelector('canvas');
-					if (!canvas) throw new Error(`Canvas not found for ${name}`);
+			const zip = new JSZip();
 
-					// Create a new canvas with room for name
-					const qrSize = canvas.width + 10;
-					const fontSize = 24;
-					const padding = 20;
-					const totalHeight = qrSize + padding + fontSize + 14;
+			for (const { id, name } of data) {
+				const canvas = refs.current[id]?.querySelector('canvas');
+				if (!canvas) {
+					console.warn(`Canvas not found for ${name}`);
+					continue;
+				}
 
-					const combinedCanvas = document.createElement('canvas');
-					combinedCanvas.width = qrSize;
-					combinedCanvas.height = totalHeight;
+				const qrSize = canvas.width + 10;
+				const fontSize = 24;
+				const padding = 20;
+				const totalHeight = qrSize + padding + fontSize + 14;
 
-					const ctx = combinedCanvas.getContext('2d');
-					if (!ctx) throw new Error('Canvas context is null');
+				const combinedCanvas = document.createElement('canvas');
+				combinedCanvas.width = qrSize;
+				combinedCanvas.height = totalHeight;
 
-					// Draw QR code onto new canvas
-					ctx.fillStyle = '#ffffff';
-					ctx.fillRect(0, 0, qrSize, totalHeight);
-					ctx.drawImage(canvas, 0, 0);
+				const ctx = combinedCanvas.getContext('2d');
+				if (!ctx) continue;
 
-					// Draw the name
-					ctx.fillStyle = '#000000';
-					ctx.font = `bold ${fontSize}px sans-serif`;
-					ctx.textAlign = 'center';
-					ctx.fillText(name.toUpperCase(), qrSize / 1.8, qrSize + fontSize);
+				ctx.fillStyle = '#ffffff';
+				ctx.fillRect(0, 0, qrSize, totalHeight);
+				ctx.drawImage(canvas, 0, 0);
+				ctx.fillStyle = '#000000';
+				ctx.font = `bold ${fontSize}px sans-serif`;
+				ctx.textAlign = 'center';
+				ctx.fillText(name.toUpperCase(), qrSize / 2, qrSize + fontSize);
 
-					// Export
-					const imgData = combinedCanvas.toDataURL('image/png');
-					const link = document.createElement('a');
-					link.href = imgData;
-					link.download = `${name}-qrcode.png`;
-					link.click();
-				})
-			);
+				const dataUrl = combinedCanvas.toDataURL('image/png');
+				const base64 = dataUrl.replace(/^data:image\/(png|jpg);base64,/, '');
+
+				zip.file(`${name}-qrcode.png`, base64, { base64: true });
+			}
+
+			const blob = await zip.generateAsync({ type: 'blob' });
+			saveAs(blob, 'qr-codes.zip');
 		} catch (error) {
-			console.error('Error downloading QR codes:', error);
+			console.error('Error creating ZIP:', error);
 		} finally {
 			setLoading(false);
 		}
@@ -70,9 +73,7 @@ export function Download({ data }: Props) {
 	return (
 		<div>
 			{/* Hidden QR codes used only for canvas rendering */}
-			<div
-				style={{ visibility: 'hidden', position: 'absolute', left: '-9999px' }}
-				aria-hidden="true">
+			<div style={{ position: 'absolute', left: '-900px' }} aria-hidden="true">
 				{data.map(({ id, name }) => (
 					<div
 						key={id}
