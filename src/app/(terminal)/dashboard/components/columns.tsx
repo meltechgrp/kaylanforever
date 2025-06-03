@@ -90,7 +90,7 @@ export const columns: ColumnDef<Users[0]>[] = [
 		accessorKey: 'check',
 		header: () => <span className="text-nowrap">Checked In</span>,
 		cell({ row }) {
-			const check = row.original.checkIn;
+			const check = row.original?.checkIn;
 			return (
 				<span
 					className={cn(
