@@ -3,6 +3,8 @@ import TabsView from './components/tabs-view';
 import { AddGuest } from './components/add-guest';
 import { getUsers } from '@/lib/actions';
 import { Download } from './components/download';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export const dynamic = 'force-dynamic'; // disables cache
 export const fetchCache = 'force-no-store';
@@ -30,6 +32,9 @@ export default async function Dashboard() {
 						</div>
 
 						<div className="flex gap-4">
+							<Link href={'/'}>
+								<Button className=" bg-yellow-500">Check In</Button>
+							</Link>
 							<AddGuest type="add" />
 							<Download data={data} />
 						</div>
