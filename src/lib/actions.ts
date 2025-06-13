@@ -138,3 +138,16 @@ export async function deleteUser(id: string) {
 		return false;
 	}
 }
+export async function UnCheck(userId: string, id?: string) {
+	try {
+		if (!id) return;
+		await prisma.checkIn.delete({
+			where: { id, userId },
+		});
+
+		return true;
+	} catch (error) {
+		console.log(error);
+		return false;
+	}
+}

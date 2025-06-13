@@ -3,6 +3,7 @@ import {
 	AlertDialog,
 	AlertDialogCancel,
 	AlertDialogContent,
+	AlertDialogDescription,
 	AlertDialogFooter,
 	AlertDialogHeader,
 	AlertDialogTitle,
@@ -43,6 +44,17 @@ export function AddGuest({ guest, type }: Props) {
 		phone: guest?.phone || '',
 		category: guest?.category || ('FAMILY' as CategoryType),
 	});
+	React.useEffect(() => {
+		if (guest) {
+			setForm({
+				id: guest.id,
+				name: guest.name,
+				guests: guest.guests.toString(),
+				phone: guest?.phone || '',
+				category: guest.category,
+			});
+		}
+	}, [guest]);
 	async function handleSubmit() {
 		if (!form.name) {
 			return toast.warning('Please a valid name');
@@ -76,6 +88,7 @@ export function AddGuest({ guest, type }: Props) {
 				</Button>
 			</AlertDialogTrigger>
 			<AlertDialogContent className=" max-w-xl py-8 gap-6">
+				<AlertDialogDescription></AlertDialogDescription>
 				<AlertDialogHeader>
 					<AlertDialogTitle className="text-xl">
 						{type == 'add' ? 'Add a New Guest' : 'Update Guest Info'}
