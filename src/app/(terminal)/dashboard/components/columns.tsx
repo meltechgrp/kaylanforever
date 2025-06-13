@@ -3,7 +3,7 @@
 import { DataTableColumnHeader } from '@/components/shared/data-table-column-header';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns/format';
-import { deleteUser, Users } from '@/lib/actions';
+import { deleteUser, UnCheck, Users } from '@/lib/actions';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { QRCodeCanvas } from 'qrcode.react';
@@ -28,7 +28,7 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { AddGuest } from './add-guest';
 import { useRouter } from 'next/navigation';
 import { Loader } from 'lucide-react';
@@ -125,6 +125,7 @@ export const columns: ColumnDef<Users[0]>[] = [
 					<UserQRCode id={user.id} name={user.name} />
 					<AddGuest type="edit" guest={user} />
 					<DeleteGuest id={user.id} />
+					<Check {...user} />
 				</div>
 			);
 		},
@@ -136,7 +137,6 @@ export function UserQRCode({ name, id }: { name: string; id: string }) {
 	const qrRef = useRef<HTMLDivElement | null>(null);
 	const downloadQRCode = async () => {
 		setLoading(true);
-		console.log('jhbds');
 		try {
 			const canvas = qrRef.current?.querySelector('canvas');
 			if (!canvas) throw new Error('Canvas not found');
@@ -240,6 +240,58 @@ export function DeleteGuest({ id }: { id: string }) {
 					<AlertDialogDescription>
 						This action cannot be undone. This will permanently delete guest
 						data from our servers.
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter className="flex-row gap-4">
+					<AlertDialogCancel className="flex-1">Close</AlertDialogCancel>
+					<Button className="flex-1" onClick={async () => await handleSubmit()}>
+						{loading && <Loader className=" w-4 h-4 animate-spin" />}
+						Continue
+					</Button>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	);
+}
+export function Check({ id, checkIn }: Users[0]) {
+	const router = useRouter();
+	const [open, setOpen] = useState(false);
+	const [loading, setLoading] = useState(false);
+
+	async function handleSubmit() {
+		if (!id) {
+			return toast.warning('Please a valid id');
+		}
+		try {
+			setLoading(true);
+			const res = await UnCheck(id, checkIn?.id);
+			if (!res) {
+				return toast.error('Error occuried, try again!');
+			} else {
+				setOpen(false);
+				router.refresh();
+				return toast.success('Guest deleted successfully!');
+			}
+		} catch (error: any) {
+			console.error('Failed request:', error);
+			return toast.error('Error occuried, try again!');
+		} finally {
+			setLoading(false);
+		}
+	}
+	const isChecked = useMemo(() => (checkIn?.id ? true : false), [checkIn]);
+	return (
+		<AlertDialog open={open} onOpenChange={setOpen}>
+			<AlertDialogTrigger asChild>
+				<Button variant="outline" disabled={!isChecked} className="">
+					Un-check
+				</Button>
+			</AlertDialogTrigger>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+					<AlertDialogDescription>
+						This action will un check this user from this checked list.
 					</AlertDialogDescription>
 				</AlertDialogHeader>
 				<AlertDialogFooter className="flex-row gap-4">

@@ -10,7 +10,7 @@ import { Users } from '@/lib/actions';
 type Props = {
 	data: Users;
 };
-const tabs = ['All', 'IN-CITY', 'IN-HOUSE', 'HOTR-FAMILY'];
+const tabs = ['All', 'IN-CITY', 'IN-HOUSE', 'HOTR-FAMILY', 'CHECKED-IN'];
 export default function TabsView(props: Props) {
 	const { data } = props;
 	const [tab, setTab] = useState('All');
@@ -18,8 +18,9 @@ export default function TabsView(props: Props) {
 	const users = useMemo(() => {
 		return data.filter((user) => {
 			if (tab === 'IN-CITY') return user.category == 'CITY';
-			if (tab === 'HOTR-FAMILY') return user.category == 'FAMILY';
-			if (tab === 'IN-HOUSE') return user.category == 'HOUSE';
+			else if (tab === 'HOTR-FAMILY') return user.category == 'FAMILY';
+			else if (tab === 'IN-HOUSE') return user.category == 'HOUSE';
+			else if (tab === 'CHECKED-IN') return user.checkIn;
 			return true;
 		});
 	}, [tab, data]);
